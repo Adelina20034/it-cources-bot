@@ -1,0 +1,102 @@
+"""
+Работа с локальной БД (JSON)
+"""
+import json
+import os
+import asyncio
+from typing import Dict, List, Optional
+from app.config import USERS_FILE, FAQ_FILE, COURSES_DATA
+
+class Database:
+    """Класс для работы с JSON БД"""
+    
+    def __init__(self, file_path: str):
+        self.file_path = file_path
+        self.lock = asyncio.Lock()
+    
+    async def load(self) -> Dict:
+        """Загрузить данные из файла"""
+        async with self.lock:
+            if os.path.exists(self.file_path):
+                try:
+                    with open(self.file_path, 'r', encoding='utf-8') as f:
+                        return json.load(f)
+                except:
+                    return {}
+            return {}
+    
+    async def save(self, data: Dict) -> None:
+        """Сохранить данные в файл"""
+        async with self.lock:
+            os.makedirs(os.path.dirname(self.file_path), exist_ok=True)
+            with open(self.file_path, 'w', encoding='utf-8') as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+
+# Инициализация БД
+users_db = Database(USERS_FILE)
+faq_db = Database(FAQ_FILE)
+
+async def init_databases() -> None:
+    """Инициализация БД с начальными данными"""
+    from app.config import FAQ_DATA
+    
+    # Инициализируем FAQ если пусто
+    faq_data = await faq_db.load()
+    if not faq_data:
+        await faq_db.save(FAQ_DATA)
+
+async def get_user(user_id: int) -> Optional[Dict]:
+    """Получить пользователя"""
+    data = await users_db.load()
+    return data.get(str(user_id))
+
+async def save_user(user_id: int, user_data: Dict) -> None:
+    """Сохранить пользователя"""
+    data = await users_db.load()
+    data[str(user_id)] = user_data
+    await users_db.save(data)
+
+async def get_user_courses(user_id: int) -> List[str]:
+    """Получить курсы пользователя"""
+    user = await get_user(user_id)
+    return user.get('courses', []) if user else []
+
+async def add_user_course(user_id: int, course_id: str) -> None:
+    """Добавить курс пользователю"""
+    user = await get_user(user_id)
+    if user:
+        if course_id not in user.get('courses', []):
+            user['courses'].append(course_id)
+            if 'progress' not in user:
+                user['progress'] = {}
+            user['progress'][course_id] = {'completed': 0}
+            await save_user(user_id, user)
+
+async def update_user_progress(user_id: int, course_id: str, increment: int = 1) -> None:
+    """Обновить прогресс пользователя"""
+    user = await get_user(user_id)
+    if user:
+        if 'progress' not in user:
+            user['progress'] = {}
+        if course_id not in user['progress']:
+            user['progress'][course_id] = {'completed': 0}
+        
+        user['progress'][course_id]['completed'] += increment
+        
+        # Не превышаем максимум
+        if course_id in COURSES_DATA:
+            max_lessons = COURSES_DATA[course_id]['lessons']
+            user['progress'][course_id]['completed'] = min(
+                user['progress'][course_id]['completed'],
+                max_lessons
+            )
+        
+        await save_user(user_id, user)
+
+async def get_all_users() -> Dict:
+    """Получить всех пользователей"""
+    return await users_db.load()
+
+async def get_all_faq() -> Dict:
+    """Получить всё FAQ"""
+    return await faq_db.load()
