@@ -1,0 +1,80 @@
+[
+  {
+    "question": "1️⃣ Что вас больше привлекает в разработке?",
+    "answers": {
+      "Создание красивых интерфейсов": "frontend",
+      "Логика и обработка данных": "backend",
+      "Управление инфраструктурой": "devops",
+      "Работа с большими данными": "data_science",
+      "Мобильные приложения": "mobile",
+      "Поиск и исправление ошибок": "qa"
+    }
+  },
+  {
+    "question": "2️⃣ Как вы предпочитаете решать задачи?",
+    "answers": {
+      "Визуально, через дизайн": "frontend",
+      "Через логику и алгоритмы": "backend",
+      "Через системное мышление": "devops",
+      "Через анализ паттернов": "data_science",
+      "Через тестирование и проверку": "qa",
+      "Комбинирую всё": "fullstack"
+    }
+  },
+  {
+    "question": "3️⃣ Какой язык программирования вас интересует?",
+    "answers": {
+      "JavaScript, TypeScript": "frontend",
+      "Python, Java, Go": "backend",
+      "Kotlin, Swift": "mobile",
+      "Python, R": "data_science",
+      "Bash, Python": "devops",
+      "Несколько языков": "fullstack"
+    }
+  },
+  {
+    "question": "4️⃣ Какая работа вас вдохновляет?",
+    "answers": {
+      "Делать приложение красивым": "frontend",
+      "Создавать стабильные сервисы": "backend",
+      "Оптимизировать производительность": "devops",
+      "Находить закономерности в данных": "data_science",
+      "Обнаруживать ошибки": "qa",
+      "Сочетание фронта и бэка": "fullstack"
+    }
+  },
+  {
+    "question": "5️⃣ Что вас беспокоит в коде?",
+    "answers": {
+      "Юзабилити и дизайн": "frontend",
+      "Безопасность и масштабируемость": "backend",
+      "Надёжность системы": "devops",
+      "Качество анализа": "data_science",
+      "Баги и их воспроизведение": "qa",
+      "Всё вместе": "fullstack"
+    }
+  },
+  {
+    "question": "6️⃣ Какой стек технологий привлекает?",
+    "answers": {
+      "React, Vue, Angular": "frontend",
+      "Django, FastAPI, Spring": "backend",
+      "Kubernetes, Docker": "devops",
+      "TensorFlow, Pandas": "data_science",
+      "Selenium, Cypress": "qa",
+      "React + Node.js": "fullstack"
+    }
+  },
+  {
+    "question": "7️⃣ Где вы видите себя через 3 года?",
+    "answers": {
+      "Senior Frontend Engineer": "frontend",
+      "Senior Backend Engineer": "backend",
+      "Full-stack технический лидер": "fullstack",
+      "ML Engineer / Data Scientist": "data_science",
+      "Platform Engineer / DevOps Lead": "devops",
+      "iOS/Android разработчик": "mobile",
+      "Head of QA": "qa"
+    }
+  }
+]

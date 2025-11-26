@@ -1,0 +1,9 @@
+{
+  "backend": "🔧 Backend разработчик",
+  "frontend": "🎨 Frontend разработчик",
+  "fullstack": "💼 Full-stack разработчик",
+  "data_science": "📊 Data Scientist",
+  "devops": "⚙️ DevOps инженер",
+  "mobile": "📱 Mobile разработчик",
+  "qa": "🧪 QA инженер"
+}
