@@ -4,27 +4,6 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from app.config import SPECIALTY_TEST, COURSES_DATA
 
-
-def get_specialty_keyboard() -> InlineKeyboardMarkup:
-    """
-    Получить клавиатуру для тестирования специальности
-    """
-    if not SPECIALTY_TEST or len(SPECIALTY_TEST) == 0:
-        return InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="❌ Вопросы не загружены", callback_data="test_error")]
-        ])
-    
-    current_question = SPECIALTY_TEST[0]
-    
-    buttons = []
-    for answer_text, specialty_id in current_question['answers'].items():
-        buttons.append([
-            InlineKeyboardButton(text=answer_text, callback_data=f"test_{specialty_id}")
-        ])
-    
-    return InlineKeyboardMarkup(inline_keyboard=buttons)
-
-
 def get_specialty_keyboard_for_question(question_index: int) -> InlineKeyboardMarkup:
     """
     Получить клавиатуру для конкретного вопроса теста
@@ -97,45 +76,3 @@ def get_lesson_mark_keyboard(course_id: str, lesson_index: int) -> InlineKeyboar
         [InlineKeyboardButton(text="✅ Отметить как пройденный", callback_data=f"complete_progress_{course_id}_{lesson_index}")],
         [InlineKeyboardButton(text="← Назад", callback_data=f"my_lessons_{course_id}")]
     ])
-
-
-def get_faq_keyboard() -> InlineKeyboardMarkup:
-    """Клавиатура FAQ"""
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="← Назад", callback_data="back_to_main")]
-    ])
-
-
-def get_progress_keyboard(user_courses: list) -> InlineKeyboardMarkup:
-    """Клавиатура прогресса"""
-    buttons = []
-    for course_id in user_courses:
-        if course_id in COURSES_DATA:
-            course = COURSES_DATA[course_id]
-            buttons.append([
-                InlineKeyboardButton(
-                    text=f"✏️ Обновить {course['name'][:20]}", 
-                    callback_data=f"progress_{course_id}_complete"
-                )
-            ])
-    
-    buttons.append([InlineKeyboardButton(text="← Назад", callback_data="back_to_main")])
-    
-    return InlineKeyboardMarkup(inline_keyboard=buttons)
-
-
-def get_courses_keyboard() -> InlineKeyboardMarkup:
-    """Клавиатура список курсов"""
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="← Назад", callback_data="back_to_main")]
-    ])
-
-
-def get_main_keyboard() -> InlineKeyboardMarkup:
-    """Главное меню"""
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🎯 Пройти тест", callback_data="test_start")],
-        [InlineKeyboardButton(text="📚 Все курсы", callback_data="courses_list")],
-        [InlineKeyboardButton(text="← Назад", callback_data="back_to_main")]
-    ])
-

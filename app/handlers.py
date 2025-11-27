@@ -5,17 +5,14 @@ import logging
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.fsm.context import FSMContext
 
-from app.config import COURSES_DATA, SPECIALTIES, FAQ_DATA, SPECIALTY_TEST
+from app.config import COURSES_DATA, SPECIALTIES, FAQ_DATA, SPECIALTY_TEST, MESSAGES
 from app.database import (
     get_user, save_user, get_user_courses, 
     add_user_course, update_user_progress
 )
 from app.keyboards import (
-    get_specialty_keyboard,
     get_course_detail_keyboard,
     get_specialty_keyboard_for_question,
-    get_faq_keyboard,
-    get_progress_keyboard,
     get_my_courses_keyboard,
     get_my_course_detail_keyboard,
     get_my_lessons_keyboard,
@@ -67,9 +64,11 @@ async def start_command(message: Message):
     )
     
     await message.answer(
-        f"👋 Добро пожаловать, <b>{user_name}</b>!\n\n"
-        "Я помогу вам найти идеальные IT-курсы!\n\n"
-        "Выберите действие:",
+        # f"👋 Добро пожаловать, <b>{user_name}</b>!\n\n"
+        # "Я помогу вам найти идеальные IT-курсы!\n\n"
+        # "Выберите действие:",
+        # reply_markup=keyboard
+        MESSAGES['welcome'].format(name=user_name),
         reply_markup=keyboard
     )
 
@@ -80,15 +79,14 @@ async def handle_test_start(callback: CallbackQuery, state: FSMContext):
     """Начало теста"""
     first_question = SPECIALTY_TEST[0] if SPECIALTY_TEST else {}
     
+    question_text = MESSAGES['test_intro'] + f"\n\n<b>Вопрос 1/7:</b> {first_question.get('question', 'Загрузка...')}"
+    
     await callback.message.edit_text(
-        "🎯 <b>Тест определения специальности</b>\n\n"
-        "Я задам 7 вопросов. Выбирайте подходящий вариант.\n\n"
-        f"<b>Вопрос 1/7:</b> {first_question.get('question', 'Загрузка...')}",
+        question_text,
         reply_markup=get_specialty_keyboard_for_question(0)
     )
     await state.set_state(TestState.waiting_for_answer)
     await state.update_data(question=0, scores={specialty: 0 for specialty in SPECIALTIES})
-
 
 async def handle_test_answer(callback: CallbackQuery, state: FSMContext):
     """Обработка ответа в тесте"""
@@ -124,8 +122,7 @@ async def handle_test_answer(callback: CallbackQuery, state: FSMContext):
         )
         
         await callback.message.edit_text(
-            f"✅ <b>Ваша специальность:</b> <b>{SPECIALTIES[specialty]}</b>\n\n"
-            f"Теперь посмотрите наши курсы в каталоге!",
+            MESSAGES['test_result'].format(specialty=SPECIALTIES[specialty]),
             reply_markup=back_keyboard
         )
         await state.clear()
@@ -135,14 +132,15 @@ async def handle_test_answer(callback: CallbackQuery, state: FSMContext):
 
 async def handle_courses_list(callback: CallbackQuery):
     """Список всех курсов"""
-    courses_text = "📚 <b>Все доступные курсы:</b>\n\n"
+    courses_text = MESSAGES['courses_header']
     buttons = []
     
     for course_id, course in COURSES_DATA.items():
-        courses_text += (
-            f"<b>{course['name']}</b>\n"
-            f"⏱ {course['duration_weeks']} недель | 📖 {course['lessons']} уроков\n"
-            f"💰 ${course['price']}\n\n"
+        courses_text += MESSAGES['course_info'].format(
+            name=course['name'],
+            duration_weeks=course['duration_weeks'],
+            lessons=course['lessons'],
+            price=course['price']
         )
         buttons.append([InlineKeyboardButton(text=course['name'], callback_data=f"course_{course_id}")])
     
@@ -157,14 +155,14 @@ async def handle_course_selection(callback: CallbackQuery):
     
     if course_id in COURSES_DATA:
         course = COURSES_DATA[course_id]
-        text = (
-            f"<b>{course['name']}</b>\n"
-            f"{course['description']}\n\n"
-            f"⏱ Длительность: {course['duration_weeks']} недель\n"
-            f"📖 Уроков: {course['lessons']}\n"
-            f"💰 Стоимость: ${course['price']}\n"
-            f"📅 Расписание: {', '.join(course['schedule'])}\n"
-            f"Уровень: <b>{course['level']}</b>"
+        text = MESSAGES['course_detail'].format(
+            name=course['name'],
+            description=course['description'],
+            duration_weeks=course['duration_weeks'],
+            lessons=course['lessons'],
+            price=course['price'],
+            schedule=', '.join(course['schedule']),
+            level=course['level']
         )
         
         await callback.message.edit_text(
@@ -187,9 +185,10 @@ async def handle_enroll(callback: CallbackQuery):
     )
     
     await callback.message.edit_text(
-        f"✅ <b>Вы записаны на {course['name']}!</b>\n\n"
-        f"📅 Начало: {course['schedule'][0]}\n"
-        f"💬 Вы получите приглашение в группу курса.",
+        MESSAGES['enrolled_success'].format(
+            course_name=course['name'],
+            start_date=course['schedule'][0]
+        ),
         reply_markup=back_keyboard
     )
 
@@ -202,12 +201,12 @@ async def handle_my_courses_list(callback: CallbackQuery):
     user_courses = await get_user_courses(user_id)
     
     if not user_courses:
-        text = "❌ Вы пока не записаны ни на один курс.\n\nВыберите курс в каталоге."
+        text = MESSAGES['my_courses_empty']
         keyboard = InlineKeyboardMarkup(
             inline_keyboard=[[InlineKeyboardButton(text="← Назад", callback_data="back_to_main")]]
         )
     else:
-        text = "📚 <b>Мои курсы:</b>\n\n"
+        text = MESSAGES['my_courses_header']
         for course_id in user_courses:
             if course_id in COURSES_DATA:
                 course = COURSES_DATA[course_id]
@@ -216,9 +215,11 @@ async def handle_my_courses_list(callback: CallbackQuery):
                 completed = progress.get('completed', 0)
                 percentage = (completed / course['lessons'] * 100) if course['lessons'] > 0 else 0
                 
-                text += (
-                    f"✅ <b>{course['name']}</b>\n"
-                    f"Прогресс: {completed}/{course['lessons']} уроков ({percentage:.0f}%)\n\n"
+                text += MESSAGES['my_course_item'].format(
+                    name=course['name'],
+                    completed=completed,
+                    total=course['lessons'],
+                    percentage=percentage
                 )
         
         keyboard = get_my_courses_keyboard(user_courses)
@@ -407,9 +408,9 @@ async def handle_progress_list(callback: CallbackQuery):
     user_courses = await get_user_courses(user_id)
     
     if not user_courses:
-        text = "❌ Вы не записаны ни на один курс."
+        text = MESSAGES['progress_empty']
     else:
-        text = "📊 <b>Ваш прогресс:</b>\n\n"
+        text = MESSAGES['progress_header']
         for course_id in user_courses:
             if course_id in COURSES_DATA:
                 course = COURSES_DATA[course_id]
@@ -419,10 +420,12 @@ async def handle_progress_list(callback: CallbackQuery):
                 percentage = (completed / total * 100) if total > 0 else 0
                 bar = '█' * int(percentage / 10) + '░' * (10 - int(percentage / 10))
                 
-                text += (
-                    f"<b>{course['name']}</b>\n"
-                    f"{bar} {percentage:.0f}%\n"
-                    f"Пройдено: {completed}/{total} уроков\n\n"
+                text += MESSAGES['progress_item'].format(
+                    name=course['name'],
+                    progress_bar=bar,
+                    percentage=percentage,
+                    completed=completed,
+                    total=total
                 )
     
     keyboard = InlineKeyboardMarkup(
@@ -472,14 +475,15 @@ async def handle_stats_list(callback: CallbackQuery):
     """Статистика"""
     stats = await get_courses_statistics()
     
-    text = "📊 <b>Статистика курсов:</b>\n\n"
-    text += f"Всего пользователей: {stats['total_users']}\n"
-    text += f"Всего записей: {stats['total_enrollments']}\n"
-    text += f"Средний прогресс: {stats['avg_progress']:.1f}%\n\n"
+    text = MESSAGES['stats_header']
+    text += MESSAGES['stats_content'].format(
+        total_users=stats['total_users'],
+        total_enrollments=stats['total_enrollments'],
+        avg_progress=stats['avg_progress']
+    )
     
-    text += "<b>Популярные курсы:</b>\n"
     for course_name, count in stats['popular_courses'].items():
-        text += f"• {course_name}: {count} студентов\n"
+        text += MESSAGES['stats_course'].format(name=course_name, count=count)
     
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[[InlineKeyboardButton(text="← Назад", callback_data="back_to_main")]]
@@ -504,7 +508,6 @@ async def handle_back_to_main(callback: CallbackQuery):
     )
     
     await callback.message.edit_text(
-        "👈 <b>Главное меню</b>\n\n"
-        "Выберите действие:",
+        MESSAGES['main_menu'],
         reply_markup=keyboard
     )
