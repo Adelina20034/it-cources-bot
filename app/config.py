@@ -11,7 +11,6 @@ load_dotenv()
 
 # ============ TELEGRAM BOT CONFIGURATION ============
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', 'YOUR_BOT_TOKEN_HERE')
-ADMIN_IDS = list(map(int, os.getenv('ADMIN_IDS', '').split(','))) if os.getenv('ADMIN_IDS') else []
 
 # ============ APPLICATION SETTINGS ============
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
@@ -57,15 +56,7 @@ def load_json(filepath: str, default: any = None) -> any:
 # ============ ЗАГРУЗКА ДАННЫХ ИЗ JSON ============
 
 # Специальности
-SPECIALTIES: Dict[str, str] = load_json(SPECIALTIES_FILE, {
-    'backend': '🔧 Backend разработчик',
-    'frontend': '🎨 Frontend разработчик',
-    'fullstack': '💼 Full-stack разработчик',
-    'data_science': '📊 Data Scientist',
-    'devops': '⚙️ DevOps инженер',
-    'mobile': '📱 Mobile разработчик',
-    'qa': '🧪 QA инженер',
-})
+SPECIALTIES: Dict[str, str] = load_json(SPECIALTIES_FILE, {})
 
 # Курсы
 COURSES_DATA: Dict[str, Dict] = load_json(COURSES_FILE, {})
