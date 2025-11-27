@@ -64,10 +64,6 @@ async def start_command(message: Message):
     )
     
     await message.answer(
-        # f"👋 Добро пожаловать, <b>{user_name}</b>!\n\n"
-        # "Я помогу вам найти идеальные IT-курсы!\n\n"
-        # "Выберите действие:",
-        # reply_markup=keyboard
         MESSAGES['welcome'].format(name=user_name),
         reply_markup=keyboard
     )
@@ -193,6 +189,26 @@ async def handle_enroll(callback: CallbackQuery):
     )
 
 
+# ============ CALLBACK HANDLERS - РАСПИСАНИЕ ============
+
+async def handle_schedule_list(callback: CallbackQuery):
+    """Расписание"""
+    schedule_text = MESSAGES['schedule_header']
+    
+    for course_id, course in COURSES_DATA.items():
+        schedule_text += (
+            MESSAGES['schedule_item'].format(
+                    name=course['name'],
+                    schedule=course['schedule']
+                )
+        )
+    
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[[InlineKeyboardButton(text="← Назад", callback_data="back_to_main")]]
+    )
+    await callback.message.edit_text(schedule_text, reply_markup=keyboard)
+
+
 # ============ CALLBACK HANDLERS - МОИ КУРСЫ ============
 
 async def handle_my_courses_list(callback: CallbackQuery):
@@ -234,11 +250,11 @@ async def handle_my_course_detail(callback: CallbackQuery):
     user_courses = await get_user_courses(user_id)
     
     if course_id not in user_courses:
-        await callback.answer("❌ Вы не записаны на этот курс!", show_alert=True)
+        await callback.answer(MESSAGES['error_not_enrolled'], show_alert=True)
         return
     
     if course_id not in COURSES_DATA:
-        await callback.answer("❌ Курс не найден", show_alert=True)
+        await callback.answer(MESSAGES['error_course_not_found'], show_alert=True)
         return
     
     course = COURSES_DATA[course_id]
@@ -249,14 +265,16 @@ async def handle_my_course_detail(callback: CallbackQuery):
     percentage = (completed / course['lessons'] * 100) if course['lessons'] > 0 else 0
     bar = '█' * int(percentage / 10) + '░' * (10 - int(percentage / 10))
     
-    text = (
-        f"<b>📚 {course['name']}</b>\n\n"
-        f"📊 Прогресс: {completed}/{course['lessons']} уроков\n"
-        f"{bar} {percentage:.0f}%\n\n"
-        f"⏱ Длительность: {course['duration_weeks']} недель\n"
-        f"📅 Расписание: {', '.join(course['schedule'])}"
-    )
-    
+    text = MESSAGES['course_detail_header'].format(
+            name=course['name'],
+            completed=completed,
+            total=course['lessons'],
+            progress_bar=bar,
+            percentage=percentage,
+            duration_weeks=course['duration_weeks'],
+            schedule=course['schedule']
+        )
+
     keyboard = get_my_course_detail_keyboard(course_id)
     await callback.message.edit_text(text, reply_markup=keyboard)
 
@@ -268,11 +286,11 @@ async def handle_my_lessons(callback: CallbackQuery):
     user_courses = await get_user_courses(user_id)
     
     if course_id not in user_courses:
-        await callback.answer("❌ Вы не записаны на этот курс!", show_alert=True)
+        await callback.answer(MESSAGES['error_not_enrolled'], show_alert=True)
         return
     
     if course_id not in COURSES_DATA:
-        await callback.answer("❌ Курс не найден", show_alert=True)
+        await callback.answer(MESSAGES['error_course_not_found'], show_alert=True)
         return
     
     course = COURSES_DATA[course_id]
@@ -282,13 +300,19 @@ async def handle_my_lessons(callback: CallbackQuery):
     progress = user.get('progress', {}).get(course_id, {}) if user else {}
     completed = progress.get('completed', 0)
     
-    text = f"<b>📖 {course['name']}</b>\n\n"
-    text += f"Пройдено: {completed}/{len(lessons)} уроков\n\n"
-    text += "<b>Список уроков:</b>\n\n"
+    text = MESSAGES['lessons_header'].format(
+                    course_name=course['name'],
+                    completed=completed,
+                    total=len(lessons),
+                )
     
     for i, lesson in enumerate(lessons, 1):
         status = "✅" if i <= completed else "⭕"
-        text += f"{status} {i}. {lesson}\n"
+        text += MESSAGES['lesson_item'].format(
+                    status=status,
+                    number=i,
+                    name=lesson
+                )
     
     keyboard = get_my_lessons_keyboard(course_id)
     await callback.message.edit_text(text, reply_markup=keyboard)
@@ -308,18 +332,18 @@ async def handle_mark_progress(callback: CallbackQuery):
     user_courses = await get_user_courses(user_id)
     
     if course_id not in user_courses:
-        await callback.answer("❌ Вы не записаны на этот курс!", show_alert=True)
+        await callback.answer(MESSAGES['error_not_enrolled'], show_alert=True)
         return
     
     if course_id not in COURSES_DATA:
-        await callback.answer("❌ Курс не найден", show_alert=True)
+        await callback.answer(MESSAGES['error_course_not_found'], show_alert=True)
         return
     
     course = COURSES_DATA[course_id]
     lessons = course.get('lessons_list', [])
     
     if lesson_index >= len(lessons):
-        await callback.answer("❌ Урок не найден", show_alert=True)
+        await callback.answer(MESSAGES['error_lesson_not_found'], show_alert=True)
         return
     
     lesson_name = lessons[lesson_index]
@@ -328,11 +352,12 @@ async def handle_mark_progress(callback: CallbackQuery):
     progress = user.get('progress', {}).get(course_id, {}) if user else {}
     completed = progress.get('completed', 0)
     is_completed = lesson_index < completed
-    
-    text = (
-        f"<b>📖 {course['name']}</b>\n\n"
-        f"<b>Урок {lesson_index + 1}:</b> {lesson_name}\n\n"
-        f"Статус: {'✅ Пройден' if is_completed else '⭕ Не пройден'}"
+
+    text = MESSAGES['lesson_detail'].format(
+        course_name=course['name'],
+        lesson_number=lesson_index + 1,
+        lesson_name=lesson_name,
+        status='✅ Пройден' if is_completed else '⭕ Не пройден'
     )
     
     keyboard = get_lesson_mark_keyboard(course_id, lesson_index)
@@ -352,7 +377,7 @@ async def handle_complete_progress(callback: CallbackQuery):
     user_courses = await get_user_courses(user_id)
     
     if course_id not in user_courses:
-        await callback.answer("❌ Вы не записаны на этот курс!", show_alert=True)
+        await callback.answer(MESSAGES['error_not_enrolled'], show_alert=True)
         return
     
     user = await get_user(user_id)
@@ -369,35 +394,19 @@ async def handle_complete_progress(callback: CallbackQuery):
     percentage = (completed / len(lessons) * 100) if len(lessons) > 0 else 0
     bar = '█' * int(percentage / 10) + '░' * (10 - int(percentage / 10))
     
-    text = (
-        f"✅ <b>Урок отмечен!</b>\n\n"
-        f"<b>{course['name']}</b>\n"
-        f"Прогресс: {completed}/{len(lessons)} уроков\n"
-        f"{bar} {percentage:.0f}%"
-    )
+    text = MESSAGES['lesson_completed'].format(
+        course_name=course['name'],
+        completed=completed,
+        total=len(lessons),
+        progress_bar=bar,
+        percentage=percentage
+        )
     
-    await callback.answer("✅ Отличная работа! 🎉", show_alert=True)
+    
+    await callback.answer(MESSAGES['success_alert'], show_alert=True)
     
     keyboard = get_my_lessons_keyboard(course_id)
     await callback.message.edit_text(text, reply_markup=keyboard)
-
-
-# ============ CALLBACK HANDLERS - РАСПИСАНИЕ ============
-
-async def handle_schedule_list(callback: CallbackQuery):
-    """Расписание"""
-    schedule_text = "📅 <b>Расписание всех курсов:</b>\n\n"
-    
-    for course_id, course in COURSES_DATA.items():
-        schedule_text += (
-            f"<b>{course['name']}</b>\n"
-            f"Время: {', '.join(course['schedule'])}\n\n"
-        )
-    
-    keyboard = InlineKeyboardMarkup(
-        inline_keyboard=[[InlineKeyboardButton(text="← Назад", callback_data="back_to_main")]]
-    )
-    await callback.message.edit_text(schedule_text, reply_markup=keyboard)
 
 
 # ============ CALLBACK HANDLERS - ПРОГРЕСС ============
@@ -447,11 +456,9 @@ async def handle_faq_list(callback: CallbackQuery):
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
     
     await callback.message.edit_text(
-        "❓ <b>Часто задаваемые вопросы:</b>\n\n"
-        "Выберите интересующий вас вопрос:",
+        MESSAGES['faq_header'],
         reply_markup=keyboard
     )
-
 
 async def handle_faq_selection(callback: CallbackQuery):
     """Обработка выбора FAQ"""
@@ -463,8 +470,10 @@ async def handle_faq_selection(callback: CallbackQuery):
             inline_keyboard=[[InlineKeyboardButton(text="← Назад к FAQ", callback_data="faq_list")]]
         )
         await callback.message.edit_text(
-            f"<b>❓ {faq['question']}</b>\n\n"
-            f"{faq['answer']}",
+            MESSAGES['faq_detail'].format(
+                question=faq['question'],
+                answer=faq['answer']                
+            ),
             reply_markup=back_keyboard
         )
 
