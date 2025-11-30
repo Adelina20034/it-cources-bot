@@ -12,7 +12,12 @@ class TestConfig(unittest.TestCase):
         self.assertGreater(len(SPECIALTIES), 0)
         self.assertIn('backend', SPECIALTIES)
         self.assertIn('frontend', SPECIALTIES)
-    
+        self.assertIn('fullstack', SPECIALTIES)
+        self.assertIn('data_science', SPECIALTIES)
+        self.assertIn('devops', SPECIALTIES)
+        self.assertIn('mobile', SPECIALTIES)
+        self.assertIn('qa', SPECIALTIES)
+
     def test_courses_exist(self):
         """Проверка наличия курсов"""
         self.assertGreater(len(COURSES_DATA), 0)

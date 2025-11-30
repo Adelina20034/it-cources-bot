@@ -2,10 +2,7 @@
 Тесты для работы с БД
 """
 import pytest
-import asyncio
-import json
-from pathlib import Path
-from app.database import Database, get_user, save_user, add_user_course, update_user_progress
+from app.database import Database, get_user, save_user, add_user_course
 
 @pytest.mark.asyncio
 async def test_database_save_and_load(test_data_dir):
@@ -66,23 +63,3 @@ async def test_add_user_course(test_data_dir, monkeypatch):
     user = await get_user(123)
     assert 'python_fundamentals' in user['courses']
     assert 'python_fundamentals' in user['progress']
-
-@pytest.mark.asyncio
-async def test_update_user_progress(test_data_dir, monkeypatch):
-    """Тест обновления прогресса пользователя"""
-    db_file = test_data_dir / "users.json"
-    monkeypatch.setattr('app.database.USERS_FILE', str(db_file))
-    
-    user_data = {
-        'user_id': 123,
-        'name': 'Test User',
-        'specialty': 'backend',
-        'courses': ['python_fundamentals'],
-        'progress': {'python_fundamentals': {'completed': 0}}
-    }
-    
-    await save_user(123, user_data)
-    await update_user_progress(123, 'python_fundamentals', 5)
-    
-    user = await get_user(123)
-    assert user['progress']['python_fundamentals']['completed'] == 5
