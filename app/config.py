@@ -11,11 +11,12 @@ load_dotenv()
 
 # ============ TELEGRAM BOT CONFIGURATION ============
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', 'YOUR_BOT_TOKEN_HERE')
+ADMIN_ID = int(os.getenv('ADMIN_ID', 0)) 
 
-# ============ APPLICATION SETTINGS ============
-DEBUG = os.getenv('DEBUG', 'False') == 'True'
-WEBHOOK_URL = os.getenv('WEBHOOK_URL', 'https://yourdomain.com')
-WEBHOOK_PORT = int(os.getenv('WEBHOOK_PORT', 8443))
+# # ============ APPLICATION SETTINGS ============
+# DEBUG = os.getenv('DEBUG', 'False') == 'True'
+# WEBHOOK_URL = os.getenv('WEBHOOK_URL', 'https://yourdomain.com')
+# WEBHOOK_PORT = int(os.getenv('WEBHOOK_PORT', 8443))
 
 # ============ DATABASE PATHS ============
 DATA_DIR = 'data'

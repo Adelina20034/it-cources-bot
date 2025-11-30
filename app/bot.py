@@ -30,7 +30,7 @@ from app.handlers import (
     handle_back_to_main
 )
 from app.states import TestState
-from app.database import init_databases
+# from app.database import init_databases
 
 logging.basicConfig(
     level=logging.INFO,
@@ -42,13 +42,13 @@ logger = logging.getLogger(__name__)
 async def main():
     """Основная функция запуска бота"""
     
-    await init_databases()
     
     # ✅ Правильный способ для aiogram 3.7.0+
     default_properties = DefaultBotProperties(parse_mode=ParseMode.HTML)
     bot = Bot(token=TELEGRAM_BOT_TOKEN, default=default_properties)
     dp = Dispatcher()
     
+    # РЕГИСТРАЦИЯ ОБРАБОТЧИКОВ (связь событий с функциями)
     # MESSAGE HANDLERS
     dp.message.register(start_command, Command("start"))
     

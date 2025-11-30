@@ -8,7 +8,7 @@ from aiogram.fsm.context import FSMContext
 from app.config import COURSES_DATA, SPECIALTIES, FAQ_DATA, SPECIALTY_TEST, MESSAGES
 from app.database import (
     get_user, save_user, get_user_courses, 
-    add_user_course, update_user_progress
+    add_user_course
 )
 from app.keyboards import (
     get_course_detail_keyboard,
@@ -16,7 +16,12 @@ from app.keyboards import (
     get_my_courses_keyboard,
     get_my_course_detail_keyboard,
     get_my_lessons_keyboard,
-    get_lesson_mark_keyboard
+    get_lesson_mark_keyboard,
+    get_main_keyboard,
+    get_back_to_main_keyboard,
+    get_courses_list_keyboard,
+    get_faq_list_keyboard,
+    get_faq_detail_keyboard
 )
 from app.states import TestState
 from analytics.analyzer import get_courses_statistics
@@ -51,17 +56,8 @@ async def start_command(message: Message):
             'progress': {}
         })
     
-    keyboard = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [InlineKeyboardButton(text="🎯 Пройти тест", callback_data="test_start")],
-            [InlineKeyboardButton(text="📚 Все курсы", callback_data="courses_list")],
-            [InlineKeyboardButton(text="📅 Расписание", callback_data="schedule_list")],
-            [InlineKeyboardButton(text="🔍 Мои курсы", callback_data="my_courses_list")],
-            [InlineKeyboardButton(text="📊 Прогресс", callback_data="progress_list")],
-            [InlineKeyboardButton(text="❓ FAQ", callback_data="faq_list")],
-            [InlineKeyboardButton(text="📈 Статистика", callback_data="stats_list")],
-        ]
-    )
+    # ✨ ИЗМЕНЕНО: Используем функцию get_main_keyboard
+    keyboard = get_main_keyboard(user_id)
     
     await message.answer(
         MESSAGES['welcome'].format(name=user_name),
@@ -113,9 +109,8 @@ async def handle_test_answer(callback: CallbackQuery, state: FSMContext):
             user['specialty'] = specialty
             await save_user(user_id, user)
         
-        back_keyboard = InlineKeyboardMarkup(
-            inline_keyboard=[[InlineKeyboardButton(text="← Назад в меню", callback_data="back_to_main")]]
-        )
+        back_keyboard = get_back_to_main_keyboard()
+
         
         await callback.message.edit_text(
             MESSAGES['test_result'].format(specialty=SPECIALTIES[specialty]),
@@ -129,7 +124,6 @@ async def handle_test_answer(callback: CallbackQuery, state: FSMContext):
 async def handle_courses_list(callback: CallbackQuery):
     """Список всех курсов"""
     courses_text = MESSAGES['courses_header']
-    buttons = []
     
     for course_id, course in COURSES_DATA.items():
         courses_text += MESSAGES['course_info'].format(
@@ -138,10 +132,9 @@ async def handle_courses_list(callback: CallbackQuery):
             lessons=course['lessons'],
             price=course['price']
         )
-        buttons.append([InlineKeyboardButton(text=course['name'], callback_data=f"course_{course_id}")])
     
-    buttons.append([InlineKeyboardButton(text="← Назад", callback_data="back_to_main")])
-    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+    keyboard = get_courses_list_keyboard()
+    
     await callback.message.edit_text(courses_text, reply_markup=keyboard)
 
 
@@ -176,10 +169,8 @@ async def handle_enroll(callback: CallbackQuery):
     
     course = COURSES_DATA[course_id]
     
-    back_keyboard = InlineKeyboardMarkup(
-        inline_keyboard=[[InlineKeyboardButton(text="← Назад в меню", callback_data="back_to_main")]]
-    )
-    
+    back_keyboard = get_back_to_main_keyboard()
+
     await callback.message.edit_text(
         MESSAGES['enrolled_success'].format(
             course_name=course['name'],
@@ -203,9 +194,8 @@ async def handle_schedule_list(callback: CallbackQuery):
                 )
         )
     
-    keyboard = InlineKeyboardMarkup(
-        inline_keyboard=[[InlineKeyboardButton(text="← Назад", callback_data="back_to_main")]]
-    )
+    keyboard = get_back_to_main_keyboard()
+
     await callback.message.edit_text(schedule_text, reply_markup=keyboard)
 
 
@@ -218,9 +208,7 @@ async def handle_my_courses_list(callback: CallbackQuery):
     
     if not user_courses:
         text = MESSAGES['my_courses_empty']
-        keyboard = InlineKeyboardMarkup(
-            inline_keyboard=[[InlineKeyboardButton(text="← Назад", callback_data="back_to_main")]]
-        )
+        keyboard = get_back_to_main_keyboard()
     else:
         text = MESSAGES['my_courses_header']
         for course_id in user_courses:
@@ -249,9 +237,9 @@ async def handle_my_course_detail(callback: CallbackQuery):
     user_id = callback.from_user.id
     user_courses = await get_user_courses(user_id)
     
-    if course_id not in user_courses:
-        await callback.answer(MESSAGES['error_not_enrolled'], show_alert=True)
-        return
+    # if course_id not in user_courses:
+    #     await callback.answer(MESSAGES['error_not_enrolled'], show_alert=True)
+    #     return
     
     if course_id not in COURSES_DATA:
         await callback.answer(MESSAGES['error_course_not_found'], show_alert=True)
@@ -285,9 +273,9 @@ async def handle_my_lessons(callback: CallbackQuery):
     user_id = callback.from_user.id
     user_courses = await get_user_courses(user_id)
     
-    if course_id not in user_courses:
-        await callback.answer(MESSAGES['error_not_enrolled'], show_alert=True)
-        return
+    # if course_id not in user_courses:
+    #     await callback.answer(MESSAGES['error_not_enrolled'], show_alert=True)
+    #     return
     
     if course_id not in COURSES_DATA:
         await callback.answer(MESSAGES['error_course_not_found'], show_alert=True)
@@ -320,10 +308,7 @@ async def handle_my_lessons(callback: CallbackQuery):
 
 async def handle_mark_progress(callback: CallbackQuery):
     """Показать урок для отмечания"""
-    # data = callback.data.split('_')
-    # course_id = data[2]
-    # lesson_index = int(data[3])4
-
+    
     parts = callback.data.split('_')
     lesson_index = int(parts[-1])  # Последний элемент - индекс
     course_id = '_'.join(parts[2:-1])  # Все между mark_progress и индексом
@@ -331,9 +316,9 @@ async def handle_mark_progress(callback: CallbackQuery):
     user_id = callback.from_user.id
     user_courses = await get_user_courses(user_id)
     
-    if course_id not in user_courses:
-        await callback.answer(MESSAGES['error_not_enrolled'], show_alert=True)
-        return
+    # if course_id not in user_courses:
+    #     await callback.answer(MESSAGES['error_not_enrolled'], show_alert=True)
+    #     return
     
     if course_id not in COURSES_DATA:
         await callback.answer(MESSAGES['error_course_not_found'], show_alert=True)
@@ -366,9 +351,7 @@ async def handle_mark_progress(callback: CallbackQuery):
 
 async def handle_complete_progress(callback: CallbackQuery):
     """Отметить урок как пройденный"""
-    # data = callback.data.split('_')
-    # course_id = data[2]
-    # lesson_index = int(data[3])
+
     parts = callback.data.split('_')
     lesson_index = int(parts[-1])  # Последний элемент - индекс
     course_id = '_'.join(parts[2:-1])  # Все между complete_progress и индексом
@@ -376,9 +359,9 @@ async def handle_complete_progress(callback: CallbackQuery):
     user_id = callback.from_user.id
     user_courses = await get_user_courses(user_id)
     
-    if course_id not in user_courses:
-        await callback.answer(MESSAGES['error_not_enrolled'], show_alert=True)
-        return
+    # if course_id not in user_courses:
+    #     await callback.answer(MESSAGES['error_not_enrolled'], show_alert=True)
+    #     return
     
     user = await get_user(user_id)
     if user:
@@ -437,9 +420,8 @@ async def handle_progress_list(callback: CallbackQuery):
                     total=total
                 )
     
-    keyboard = InlineKeyboardMarkup(
-        inline_keyboard=[[InlineKeyboardButton(text="← Назад", callback_data="back_to_main")]]
-    )
+    keyboard = get_back_to_main_keyboard()
+
     await callback.message.edit_text(text, reply_markup=keyboard)
 
 
@@ -447,18 +429,14 @@ async def handle_progress_list(callback: CallbackQuery):
 
 async def handle_faq_list(callback: CallbackQuery):
     """FAQ"""
-    buttons = [
-        [InlineKeyboardButton(text=faq['question'][:40] + "...", callback_data=f"faq_{faq_id}")]
-        for faq_id, faq in FAQ_DATA.items()
-    ]
-    buttons.append([InlineKeyboardButton(text="← Назад", callback_data="back_to_main")])
-    
-    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+
+    keyboard = get_faq_list_keyboard()
     
     await callback.message.edit_text(
         MESSAGES['faq_header'],
         reply_markup=keyboard
     )
+
 
 async def handle_faq_selection(callback: CallbackQuery):
     """Обработка выбора FAQ"""
@@ -466,9 +444,8 @@ async def handle_faq_selection(callback: CallbackQuery):
     
     if faq_id in FAQ_DATA:
         faq = FAQ_DATA[faq_id]
-        back_keyboard = InlineKeyboardMarkup(
-            inline_keyboard=[[InlineKeyboardButton(text="← Назад к FAQ", callback_data="faq_list")]]
-        )
+        back_keyboard = get_faq_detail_keyboard()
+
         await callback.message.edit_text(
             MESSAGES['faq_detail'].format(
                 question=faq['question'],
@@ -477,13 +454,26 @@ async def handle_faq_selection(callback: CallbackQuery):
             reply_markup=back_keyboard
         )
 
-
 # ============ CALLBACK HANDLERS - СТАТИСТИКА ============
 
 async def handle_stats_list(callback: CallbackQuery):
-    """Статистика"""
+    """Статистика курсов с графиками"""
+    from analytics.analyzer import generate_statistics_chart
+    from aiogram.types import BufferedInputFile
+    
+    # from app.config import ADMIN_ID
+    
+    # if callback.from_user.id != ADMIN_ID:
+    #     await callback.answer(
+    #         "❌ Доступ запрещён! Статистика доступна только администратору.",
+    #         show_alert=True
+    #     )
+    #     return
+
+    # Получаем статистику
     stats = await get_courses_statistics()
     
+    # Формируем текст
     text = MESSAGES['stats_header']
     text += MESSAGES['stats_content'].format(
         total_users=stats['total_users'],
@@ -494,29 +484,45 @@ async def handle_stats_list(callback: CallbackQuery):
     for course_name, count in stats['popular_courses'].items():
         text += MESSAGES['stats_course'].format(name=course_name, count=count)
     
-    keyboard = InlineKeyboardMarkup(
-        inline_keyboard=[[InlineKeyboardButton(text="← Назад", callback_data="back_to_main")]]
-    )
-    await callback.message.edit_text(text, reply_markup=keyboard)
-
+    keyboard = get_back_to_main_keyboard()
+    
+    # Генерируем график
+    chart_buffer = await generate_statistics_chart(stats)
+    
+    if chart_buffer:
+        # Если есть данные для графика — отправляем фото с текстом
+        photo = BufferedInputFile(chart_buffer.getvalue(), filename="stats.png")
+        
+        # Удаляем старое сообщение с кнопками
+        await callback.message.delete()
+        
+        # Отправляем фото с текстом статистики
+        await callback.message.answer_photo(
+            photo=photo,
+            caption=text,
+            reply_markup=keyboard
+        )
+    else:
+        # Если нет данных для графика — просто текст
+        await callback.message.edit_text(text, reply_markup=keyboard)
 
 # ============ CALLBACK HANDLERS - НАВИГАЦИЯ ============
 
 async def handle_back_to_main(callback: CallbackQuery):
     """Возврат в главное меню"""
-    keyboard = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [InlineKeyboardButton(text="🎯 Пройти тест", callback_data="test_start")],
-            [InlineKeyboardButton(text="📚 Все курсы", callback_data="courses_list")],
-            [InlineKeyboardButton(text="📅 Расписание", callback_data="schedule_list")],
-            [InlineKeyboardButton(text="🔍 Мои курсы", callback_data="my_courses_list")],
-            [InlineKeyboardButton(text="📊 Прогресс", callback_data="progress_list")],
-            [InlineKeyboardButton(text="❓ FAQ", callback_data="faq_list")],
-            [InlineKeyboardButton(text="📈 Статистика", callback_data="stats_list")],
-        ]
-    )
+    keyboard = get_main_keyboard(callback.from_user.id)
     
-    await callback.message.edit_text(
-        MESSAGES['main_menu'],
-        reply_markup=keyboard
-    )
+    # Проверяем, есть ли текст в сообщении
+    if callback.message.text:
+        # Если это текстовое сообщение — редактируем
+        await callback.message.edit_text(
+            MESSAGES['main_menu'],
+            reply_markup=keyboard
+        )
+    else:
+        # Если это фото/видео/файл — удаляем и отправляем новое
+        await callback.message.delete()
+        await callback.message.answer(
+            MESSAGES['main_menu'],
+            reply_markup=keyboard
+        )

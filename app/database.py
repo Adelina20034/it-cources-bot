@@ -5,7 +5,7 @@ import json
 import os
 import asyncio
 from typing import Dict, List, Optional
-from app.config import USERS_FILE, FAQ_FILE, COURSES_DATA
+from app.config import USERS_FILE
 
 class Database:
     """Класс для работы с JSON БД"""
@@ -34,16 +34,6 @@ class Database:
 
 # Инициализация БД
 users_db = Database(USERS_FILE)
-faq_db = Database(FAQ_FILE)
-
-async def init_databases() -> None:
-    """Инициализация БД с начальными данными"""
-    from app.config import FAQ_DATA
-    
-    # Инициализируем FAQ если пусто
-    faq_data = await faq_db.load()
-    if not faq_data:
-        await faq_db.save(FAQ_DATA)
 
 async def get_user(user_id: int) -> Optional[Dict]:
     """Получить пользователя"""
@@ -72,31 +62,6 @@ async def add_user_course(user_id: int, course_id: str) -> None:
             user['progress'][course_id] = {'completed': 0}
             await save_user(user_id, user)
 
-async def update_user_progress(user_id: int, course_id: str, increment: int = 1) -> None:
-    """Обновить прогресс пользователя"""
-    user = await get_user(user_id)
-    if user:
-        if 'progress' not in user:
-            user['progress'] = {}
-        if course_id not in user['progress']:
-            user['progress'][course_id] = {'completed': 0}
-        
-        user['progress'][course_id]['completed'] += increment
-        
-        # Не превышаем максимум
-        if course_id in COURSES_DATA:
-            max_lessons = COURSES_DATA[course_id]['lessons']
-            user['progress'][course_id]['completed'] = min(
-                user['progress'][course_id]['completed'],
-                max_lessons
-            )
-        
-        await save_user(user_id, user)
-
 async def get_all_users() -> Dict:
     """Получить всех пользователей"""
     return await users_db.load()
-
-async def get_all_faq() -> Dict:
-    """Получить всё FAQ"""
-    return await faq_db.load()
