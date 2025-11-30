@@ -493,8 +493,7 @@ async def handle_stats_list(callback: CallbackQuery):
         # Если есть данные для графика — отправляем фото с текстом
         photo = BufferedInputFile(chart_buffer.getvalue(), filename="stats.png")
         
-        # Удаляем старое сообщение с кнопками
-        await callback.message.delete()
+        await callback.answer()
         
         # Отправляем фото с текстом статистики
         await callback.message.answer_photo(
@@ -520,9 +519,5 @@ async def handle_back_to_main(callback: CallbackQuery):
             reply_markup=keyboard
         )
     else:
-        # Если это фото/видео/файл — удаляем и отправляем новое
+        # Если это фото/видео/файл — удаляем
         await callback.message.delete()
-        await callback.message.answer(
-            MESSAGES['main_menu'],
-            reply_markup=keyboard
-        )
