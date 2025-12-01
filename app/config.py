@@ -96,7 +96,7 @@ MESSAGES = {
     'test_result': "✅ <b>Ваша специальность:</b> <b>{specialty}</b>\n\nТеперь посмотрите наши курсы в каталоге!",
     
     'courses_header': "📚 <b>Все доступные курсы:</b>\n\n",
-    'course_info': "<b>{name}</b>\n⏱ {duration_weeks} недель | 📖 {lessons} уроков\n💰 ${price}\n\n",
+    'course_info': "<b>{name}</b>\n⏱ {duration_weeks} недель | 📖 {lessons} уроков\n💰 ₽{price}\n\n",
     
     'course_detail': "<b>{name}</b>\n{description}\n\n⏱ Длительность: {duration_weeks} недель\n📖 Уроков: {lessons}\n💰 Стоимость: ${price}\n📅 Расписание: {schedule}\nУровень: <b>{level}</b>",
     

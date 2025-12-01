@@ -51,16 +51,29 @@ async def get_user_courses(user_id: int) -> List[str]:
     user = await get_user(user_id)
     return user.get('courses', []) if user else []
 
+# async def add_user_course(user_id: int, course_id: str) -> None:
+#     """Добавить курс пользователю"""
+#     user = await get_user(user_id)
+#     if user:
+#         if course_id not in user.get('courses', []):
+#             user['courses'].append(course_id)
+#             if 'progress' not in user:
+#                 user['progress'] = {}
+#             user['progress'][course_id] = {'completed': 0}
+#             await save_user(user_id, user)
 async def add_user_course(user_id: int, course_id: str) -> None:
-    """Добавить курс пользователю"""
     user = await get_user(user_id)
     if user:
-        if course_id not in user.get('courses', []):
-            user['courses'].append(course_id)
-            if 'progress' not in user:
-                user['progress'] = {}
-            user['progress'][course_id] = {'completed': 0}
-            await save_user(user_id, user)
+        if course_id not in user.get("courses", []):
+            user["courses"].append(course_id)
+        
+        if "progress" not in user:
+            user["progress"] = {}
+        
+        # Инициализация с пустым списком вместо {"completed": 0}
+        user["progress"][course_id] = {"completed_lessons": []}
+        
+        await save_user(user_id, user)
 
 async def get_user_progress(user_id: int, course_id: str):
     """Получить прогресс пользователя по курсу"""
