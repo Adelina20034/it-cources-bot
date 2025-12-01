@@ -7,7 +7,8 @@
       "Управление инфраструктурой": "devops",
       "Работа с большими данными": "data_science",
       "Мобильные приложения": "mobile",
-      "Поиск и исправление ошибок": "qa"
+      "Поиск и исправление ошибок": "qa",
+      "Комбинирую всё вместе": "fullstack"
     }
   },
   {
@@ -17,8 +18,9 @@
       "Через логику и алгоритмы": "backend",
       "Через системное мышление": "devops",
       "Через анализ паттернов": "data_science",
+      "Через мобильные приложения": "mobile",
       "Через тестирование и проверку": "qa",
-      "Комбинирую всё": "fullstack"
+      "Через комбинацию подходов": "fullstack"
     }
   },
   {
@@ -26,9 +28,10 @@
     "answers": {
       "JavaScript, TypeScript": "frontend",
       "Python, Java, Go": "backend",
-      "Kotlin, Swift": "mobile",
-      "Python, R": "data_science",
       "Bash, Python": "devops",
+      "Python, R": "data_science",
+      "Kotlin, Swift": "mobile",
+      "Java, C#": "qa",
       "Несколько языков": "fullstack"
     }
   },
@@ -39,8 +42,9 @@
       "Создавать стабильные сервисы": "backend",
       "Оптимизировать производительность": "devops",
       "Находить закономерности в данных": "data_science",
+      "Создавать приложения для телефонов": "mobile",
       "Обнаруживать ошибки": "qa",
-      "Сочетание фронта и бэка": "fullstack"
+      "Всё вместе": "fullstack"
     }
   },
   {
@@ -50,6 +54,7 @@
       "Безопасность и масштабируемость": "backend",
       "Надёжность системы": "devops",
       "Качество анализа": "data_science",
+      "Совместимость с устройствами": "mobile",
       "Баги и их воспроизведение": "qa",
       "Всё вместе": "fullstack"
     }
@@ -60,9 +65,10 @@
       "React, Vue, Angular": "frontend",
       "Django, FastAPI, Spring": "backend",
       "Kubernetes, Docker": "devops",
-      "TensorFlow, Pandas": "data_science",
+      "TensorFlow, PyTorch": "data_science",
+      "React Native, Flutter": "mobile",
       "Selenium, Cypress": "qa",
-      "React + Node.js": "fullstack"
+      "Полный стек": "fullstack"
     }
   },
   {
@@ -70,11 +76,11 @@
     "answers": {
       "Senior Frontend Engineer": "frontend",
       "Senior Backend Engineer": "backend",
-      "Full-stack технический лидер": "fullstack",
-      "ML Engineer / Data Scientist": "data_science",
       "Platform Engineer / DevOps Lead": "devops",
-      "iOS/Android разработчик": "mobile",
-      "Head of QA": "qa"
+      "ML Engineer / Data Scientist": "data_science",
+      "Lead Mobile Developer": "mobile",
+      "Lead QA Engineer": "qa",
+      "Full-stack технический лидер": "fullstack"
     }
   }
 ]

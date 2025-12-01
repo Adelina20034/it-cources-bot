@@ -8,7 +8,7 @@ from aiogram.fsm.context import FSMContext
 from app.config import COURSES_DATA, SPECIALTIES, FAQ_DATA, SPECIALTY_TEST, MESSAGES
 from app.database import (
     get_user, save_user, get_user_courses, 
-    add_user_course
+    add_user_course, get_user_progress
 )
 from app.keyboards import (
     get_course_detail_keyboard,
@@ -27,16 +27,6 @@ from app.states import TestState
 from analytics.analyzer import get_courses_statistics
 
 logger = logging.getLogger(__name__)
-
-
-# ============ ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ============
-
-async def get_user_progress(user_id: int, course_id: str):
-    """Получить прогресс пользователя по курсу"""
-    user = await get_user(user_id)
-    if user and 'progress' in user:
-        return user['progress'].get(course_id, {'completed': 0})
-    return {'completed': 0}
 
 
 # ============ ГЛАВНОЕ МЕНЮ ============

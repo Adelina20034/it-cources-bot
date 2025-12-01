@@ -62,6 +62,13 @@ async def add_user_course(user_id: int, course_id: str) -> None:
             user['progress'][course_id] = {'completed': 0}
             await save_user(user_id, user)
 
+async def get_user_progress(user_id: int, course_id: str):
+    """Получить прогресс пользователя по курсу"""
+    user = await get_user(user_id)
+    if user and 'progress' in user:
+        return user['progress'].get(course_id, {'completed': 0})
+    return {'completed': 0}
+
 async def get_all_users() -> Dict:
     """Получить всех пользователей"""
     return await users_db.load()
