@@ -46,7 +46,6 @@ async def start_command(message: Message):
             'progress': {}
         })
     
-    # ✨ ИЗМЕНЕНО: Используем функцию get_main_keyboard
     keyboard = get_main_keyboard(user_id)
     
     await message.answer(
@@ -261,43 +260,6 @@ async def handle_my_course_detail(callback: CallbackQuery):
     await callback.message.edit_text(text, reply_markup=keyboard)
 
 
-# async def handle_my_lessons(callback: CallbackQuery):
-#     """Показать уроки моего курса для отмечания прогресса"""
-#     course_id = callback.data.replace('my_lessons_', '')
-#     user_id = callback.from_user.id
-#     user_courses = await get_user_courses(user_id)
-    
-#     # if course_id not in user_courses:
-#     #     await callback.answer(MESSAGES['error_not_enrolled'], show_alert=True)
-#     #     return
-    
-#     if course_id not in COURSES_DATA:
-#         await callback.answer(MESSAGES['error_course_not_found'], show_alert=True)
-#         return
-    
-#     course = COURSES_DATA[course_id]
-#     lessons = course.get('lessons_list', [])
-    
-#     user = await get_user(user_id)
-#     progress = user.get('progress', {}).get(course_id, {}) if user else {}
-#     completed = progress.get('completed', 0)
-    
-#     text = MESSAGES['lessons_header'].format(
-#                     course_name=course['name'],
-#                     completed=completed,
-#                     total=len(lessons),
-#                 )
-    
-#     for i, lesson in enumerate(lessons, 1):
-#         status = "✅" if i <= completed else "⭕"
-#         text += MESSAGES['lesson_item'].format(
-#                     status=status,
-#                     number=i,
-#                     name=lesson
-#                 )
-    
-#     keyboard = get_my_lessons_keyboard(course_id)
-#     await callback.message.edit_text(text, reply_markup=keyboard)
 async def handle_my_lessons(callback: CallbackQuery):
     course_id = callback.data.replace("my_lessons_", "")
     user_id = callback.from_user.id
@@ -340,47 +302,6 @@ async def handle_my_lessons(callback: CallbackQuery):
     await callback.message.edit_text(text, reply_markup=keyboard)
 
 
-# async def handle_mark_progress(callback: CallbackQuery):
-#     """Показать урок для отмечания"""
-    
-#     parts = callback.data.split('_')
-#     lesson_index = int(parts[-1])  # Последний элемент - индекс
-#     course_id = '_'.join(parts[2:-1])  # Все между mark_progress и индексом
-    
-#     user_id = callback.from_user.id
-#     user_courses = await get_user_courses(user_id)
-    
-#     # if course_id not in user_courses:
-#     #     await callback.answer(MESSAGES['error_not_enrolled'], show_alert=True)
-#     #     return
-    
-#     if course_id not in COURSES_DATA:
-#         await callback.answer(MESSAGES['error_course_not_found'], show_alert=True)
-#         return
-    
-#     course = COURSES_DATA[course_id]
-#     lessons = course.get('lessons_list', [])
-    
-#     if lesson_index >= len(lessons):
-#         await callback.answer(MESSAGES['error_lesson_not_found'], show_alert=True)
-#         return
-    
-#     lesson_name = lessons[lesson_index]
-    
-#     user = await get_user(user_id)
-#     progress = user.get('progress', {}).get(course_id, {}) if user else {}
-#     completed = progress.get('completed', 0)
-#     is_completed = lesson_index < completed
-
-#     text = MESSAGES['lesson_detail'].format(
-#         course_name=course['name'],
-#         lesson_number=lesson_index + 1,
-#         lesson_name=lesson_name,
-#         status='✅ Пройден' if is_completed else '⭕ Не пройден'
-#     )
-    
-#     keyboard = get_lesson_mark_keyboard(course_id, lesson_index)
-#     await callback.message.edit_text(text, reply_markup=keyboard)
 async def handle_mark_progress(callback: CallbackQuery):
     parts = callback.data.split("_")
     lesson_index = int(parts[-1])  # Индекс урока (0-based)
@@ -423,48 +344,6 @@ async def handle_mark_progress(callback: CallbackQuery):
     keyboard = get_lesson_mark_keyboard(course_id, lesson_index)
     await callback.message.edit_text(text, reply_markup=keyboard)
 
-
-# async def handle_complete_progress(callback: CallbackQuery):
-#     """Отметить урок как пройденный"""
-
-#     parts = callback.data.split('_')
-#     lesson_index = int(parts[-1])  # Последний элемент - индекс
-#     course_id = '_'.join(parts[2:-1])  # Все между complete_progress и индексом
-    
-#     user_id = callback.from_user.id
-#     user_courses = await get_user_courses(user_id)
-    
-#     # if course_id not in user_courses:
-#     #     await callback.answer(MESSAGES['error_not_enrolled'], show_alert=True)
-#     #     return
-    
-#     user = await get_user(user_id)
-#     if user:
-#         if course_id not in user['progress']:
-#             user['progress'][course_id] = {'completed': 0}
-        
-#         user['progress'][course_id]['completed'] = lesson_index + 1
-#         await save_user(user_id, user)
-    
-#     course = COURSES_DATA[course_id]
-#     lessons = course.get('lessons_list', [])
-#     completed = lesson_index + 1
-#     percentage = (completed / len(lessons) * 100) if len(lessons) > 0 else 0
-#     bar = '█' * int(percentage / 10) + '░' * (10 - int(percentage / 10))
-    
-#     text = MESSAGES['lesson_completed'].format(
-#         course_name=course['name'],
-#         completed=completed,
-#         total=len(lessons),
-#         progress_bar=bar,
-#         percentage=percentage
-#         )
-    
-    
-#     await callback.answer(MESSAGES['success_alert'], show_alert=True)
-    
-#     keyboard = get_my_lessons_keyboard(course_id)
-#     await callback.message.edit_text(text, reply_markup=keyboard)
 async def handle_complete_progress(callback: CallbackQuery):
     parts = callback.data.split("_")
     lesson_index = int(parts[-1])  # Индекс урока (0-based)

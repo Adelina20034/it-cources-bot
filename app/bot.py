@@ -42,8 +42,6 @@ logger = logging.getLogger(__name__)
 async def main():
     """Основная функция запуска бота"""
     
-    
-    # ✅ Правильный способ для aiogram 3.7.0+
     default_properties = DefaultBotProperties(parse_mode=ParseMode.HTML)
     bot = Bot(token=TELEGRAM_BOT_TOKEN, default=default_properties)
     dp = Dispatcher()
